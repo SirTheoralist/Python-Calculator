@@ -1,0 +1,90 @@
+import tkinter as tk
+import math
+
+class Calculator:
+        
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Calculator")
+        self.root.config(bg = "grey")
+        self.bg = "black"
+        self.fg = "orange"
+        
+        self.expression = ""
+        self.answer = 0
+        self.create_outputBar()
+        self.create_buttons()
+
+    def create_outputBar(self):
+        self.outputFrame = tk.Frame(self.root, bg = self.bg, borderwidth = 1, relief = "solid")
+        self.outputFrame.grid(columnspan = 5, padx = 1, pady = 1, sticky = "NSEW")
+        self.root.grid_rowconfigure(0, weight = 1)
+        self.root.grid_columnconfigure(0, weight = 1)
+        
+        self.outputBar = tk.Label(self.outputFrame, bg = self.bg, fg = "white", font = ("Consolas", 35))
+        self.outputBar.pack(anchor = "center", expand = 1)
+
+    def create_buttons(self):
+        for frameNum, frame in enumerate(symbols):
+            self.row = tk.Frame(self.root)
+            self.row.grid(row = frameNum + 1)
+            self.root.grid_rowconfigure(frameNum + 1, weight = 1)
+            
+            for symbolNum, symbol in enumerate(frame):
+                button = tk.Button(self.root, text = symbol, bg = self.bg, fg = self.fg, font = ("Consolas", 25), width = 4,
+                                   borderwidth = 1, relief = "solid")
+                if type(symbol) == int: button.config(fg = "white")
+                button.bind("<ButtonPress-1>", lambda event, char = symbol: self.create_expression(event, char))
+                button.grid(row = frameNum + 1, column = symbolNum, padx = 1, pady = 1, sticky = "NSEW") 
+                self.root.grid_columnconfigure(symbolNum, weight = 1)
+
+    def create_expression(self, event, char):
+        if char not in ['=', "CLS", "DEL"]:
+            self.expression += str(char)
+            self.outputBar.config(text = self.expression)
+            
+        if char == '=':
+            for char in self.expression:
+                if char in values:
+                    self.expression = self.expression.replace(char, values[char])
+            self.expression = self.expression.replace("ANS", str(self.answer))
+            self.expression = self.expression.replace("sin", "math.sin")
+            self.expression = self.expression.replace("cos", "math.cos")
+            self.expression = self.expression.replace("tan", "math.tan")
+            self.evaluate() 
+
+        if char == "CLS":
+            self.expression = ""
+            self.outputBar.config(text = self.expression)
+
+        if char == "DEL":
+            self.expression = self.expression[:-1]
+            self.outputBar.config(text = self.expression)
+
+    def evaluate(self):
+        try:
+            self.expression = eval(self.expression)
+            try:
+                if self.expression == int(self.expression):
+                    self.expression = int(self.expression)
+            except: TypeError
+            self.outputBar.config(text = self.expression)
+            self.answer = str(self.expression)
+            self.expression = self.answer
+        except (SyntaxError, TypeError):
+                self.outputBar.config(text = "INVALID SYNTAX")
+                self.expression = ""
+        except ZeroDivisionError:
+                self.outputBar.config(text = "UNDEFINED")
+                self.expression = ""
+        
+symbols = [["sin(", "cos(", "tan(", '%', '×10^'],
+            ['π', 'e', 'j', '(', ')'],
+            ["DEL", 7, 8, 9, "CLS"],
+            [ '×',4, 5, 6, '÷'],
+            [ '+',1, 2, 3, '-'],
+            ['.', '^', 0, "ANS", '=']]
+
+gui = Calculator(tk.Tk())
+values = {'π' : "math.pi", 'e' : "math.e", '^' : "**", '×' : '*', '÷' : '/', '%' :"/100"}
+gui.root.mainloop()
